@@ -53,7 +53,7 @@ class Ladder(torch.nn.Module):
         return self.de.bn_hat_z_layers(hat_z_layers, z_pre_layers)
 
 
-def evaluate_performance(ladder, valid_loader, e, agg_cost_scaled, agg_supervised_cost_scaled,
+def evaluate_performance(ladder, valid_loader, e, agg_supervised_cost_scaled,
                          agg_unsupervised_cost_scaled, use_cuda,  best_answer):
     correct = 0.
     total = 0.
@@ -62,7 +62,6 @@ def evaluate_performance(ladder, valid_loader, e, agg_cost_scaled, agg_supervise
             data = data.cuda()
         data, target = Variable(data), Variable(target)
         output = ladder.forward_encoders_clean(data)
-        # TODO: Do away with the below hack for GPU tensors.
         if use_cuda:
             output = output.cpu()
             target = target.cpu()
@@ -110,6 +109,7 @@ def main():
     print("* Batch size:", batch_size)
     print("* Learning rate:", starter_lr)
     print("* Aim epochs:", epochs)
+    print("* Encoder activations:", encoder_activations)
     print("* Random seed:", seed)
     print("* Noise std", noise_std)
     print("* CUDA:", use_cuda)
@@ -151,8 +151,6 @@ def main():
     with open(validation_labels_filename, 'rb') as f:
         validation_labels = pickle.load(f).astype(int)
 
-    print("* Labelled datas:", train_labelled_images.shape[0])
-    print("* Unlabelled datas:", train_unlabelled_images.shape[0])
 
     # Create tensor  DataLoaders
     unlabelled_dataset = TensorDataset(torch.FloatTensor(train_unlabelled_images), torch.LongTensor(train_unlabelled_labels))
@@ -173,12 +171,14 @@ def main():
 
     print(ladder)
 
-
     for e in range(epochs):
         print("**********************************************")
+        print("* Labelled datas:", train_labelled_images.shape[0])
+        print("* Unlabelled datas:", train_unlabelled_images.shape[0])
         print("* Time used", (time.time() - start_time) / 60, "mins")
         print("* Batch size:", batch_size)
         print("* Learning rate:", starter_lr)
+        print("* Encoder activations:", encoder_activations)
         print("* Aim epochs:", epochs)
         print("* Random seed:", seed)
         print("* Noise std", noise_std)
@@ -187,16 +187,17 @@ def main():
         print("* Encoder size:", encoder_sizes)
         print("* encoder_train_bn_scaling:", encoder_train_bn_scaling)
         print("********************************************\n")
+
+
         """Init cost value and set a descending learning rate"""
         agg_cost = 0.
         agg_supervised_cost = 0.
         agg_unsupervised_cost = 0.
         num_batches = 0
         ladder.train()
-        # TODO: Add volatile for the input parameters in training and validation
+
         ind_labelled = 0
         ind_limit = np.ceil(float(train_labelled_images.shape[0]) / batch_size)
-
 
         #descending learning rate
         if e > decay_epoch:
@@ -206,7 +207,6 @@ def main():
 
 
         for batch_idx, (unlabelled_images, unlabelled_labels) in enumerate(unlabelled_loader):
-
             """iterate the labelled data with step of batch size"""
             if ind_labelled == ind_limit:
                 randomize = np.arange(train_labelled_images.shape[0])
@@ -214,8 +214,6 @@ def main():
                 train_labelled_images = train_labelled_images[randomize]
                 train_labelled_labels = train_labelled_labels[randomize]
                 ind_labelled = 0
-
-            # TODO: Verify whether labelled examples are used for calculating unsupervised loss.
 
             labelled_start = batch_size * ind_labelled
             labelled_end = batch_size * (ind_labelled + 1)
@@ -247,7 +245,6 @@ def main():
             output_clean_unlabelled = ladder.forward_encoders_clean(unlabelled_data)
             z_pre_layers_unlabelled = ladder.get_encoders_z_pre(reverse=True)
             z_layers_unlabelled = ladder.get_encoders_z(reverse=True)
-
             tilde_z_bottom_unlabelled = ladder.get_encoder_tilde_z_bottom()
 
             # pass through decoders
@@ -258,7 +255,6 @@ def main():
             z_pre_layers_unlabelled.append(unlabelled_data)
             z_layers_unlabelled.append(unlabelled_data)
 
-            # TODO: Verify if you have to batch-normalize the bottom-most layer also
             # batch normalize using mean, var of z_pre
             bn_hat_z_layers_unlabelled = ladder.decoder_bn_hat_z_layers(hat_z_layers_unlabelled, z_pre_layers_unlabelled)
 
@@ -267,8 +263,7 @@ def main():
             cost_unsupervised = 0.
             assert len(z_layers_unlabelled) == len(bn_hat_z_layers_unlabelled)
             for cost_lambda, z, bn_hat_z in zip(unsupervised_costs_lambda, z_layers_unlabelled, bn_hat_z_layers_unlabelled):
-                c = cost_lambda * loss_unsupervised.forward(bn_hat_z, z)
-                cost_unsupervised += c
+                cost_unsupervised + = cost_lambda * loss_unsupervised.forward(bn_hat_z, z)
 
 
             """back propagation"""
@@ -281,23 +276,27 @@ def main():
             agg_unsupervised_cost += cost_unsupervised.data[0]
             num_batches += 1
 
-
-            """Show the performance after every batch"""
+            """Show the performance after every pass of supervised"""
             if ind_labelled == ind_limit:
-                ladder.eval()
+                ladder.eval() #eval model
                 best_answer = evaluate_performance(ladder, validation_loader, e,
-                                     agg_cost / num_batches,
                                      agg_supervised_cost / num_batches,
                                      agg_unsupervised_cost / num_batches,
                                      use_cuda,
                                      best_answer)
-                ladder.train()
+                ladder.train() #train model
+
+
+    print(ladder)
     print("**********************************************")
     print("* Finish! The best accuracy: ", best_answer)
     print("* Time used:", (time.time() - start_time) / 60, "mins")
     print("**********************************************")
+    print("* Labelled datas:", train_labelled_images.shape[0])
+    print("* Unlabelled datas:", train_unlabelled_images.shape[0])
     print("* Batch size:", batch_size)
     print("* Learning rate:", starter_lr)
+    print("* Encoder activations:", encoder_activations)
     print("* Aim epochs:", epochs)
     print("* Random seed:", seed)
     print("* Noise std", noise_std)

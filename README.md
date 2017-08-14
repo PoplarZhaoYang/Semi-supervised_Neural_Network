@@ -1,9 +1,10 @@
 # Semi-supervised_Neural_Network
-A semi-supervised neural network which is based on the paper **Semi-Supervised Learning with Ladder Networks**.
+A semi-supervised neural network which is based on the paper **Semi-Supervised Learning with Ladder Networks** by Pytorch.
 The sturctrue of this deep neural network combines supervised learning with unsupervised learning, and it is trained to simultaneously minimize the sum of supervised and unsupervised cost functions by backpropagation.In fact, the unsupervised learing complement supervised learing mission to get a better result.
 
 The structure of this model:
-![](/utils/pictures/ladder_net.png)
+![]()
+<img src="./utils/pictures/ladder_net.png" width = "750" height = "600" alt="ladder" align=center />
 
 ### The result in MNIST of just use 100 labelled data and 49900 unlabelled data
 
