@@ -1,3 +1,9 @@
+"""Ladder Network
+* based on Semi-Supervised Ladder Network
+* the neural network is MLP network which is enough for MNIST 
+"""
+
+
 from __future__ import print_function
 
 import numpy as np
