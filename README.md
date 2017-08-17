@@ -4,7 +4,8 @@ The sturctrue of this deep neural network combines supervised learning with unsu
 
 The structure of this model:
 ![]()
-<img src="./utils/pictures/ladder_net.png" width = "750" height = "600" alt="ladder" align=center />
+<img src="./utils/pictures/ladder_net.png" width = "550" height = "300" alt="ladder" align=center />
+This code uses the MLP network, and CNN or ResNet is also ok theoretically.
 
 ### The result in MNIST of just use 100 labelled data and 49900 unlabelled data
 
@@ -31,6 +32,7 @@ python3 utils/mnist_data.py --num_labelled 100 #change labelled data
 
 ### About GPU
 If your Pytorch can get GPU, this model will firstly use GPU, or use the CPU.
+In my machine the GPU(GTX 1080ti) version cost about 121 s/epoch, but the CPU version cost about 200 s/epoch.
 ```python
 torch.cuda.is_available() 
 ```

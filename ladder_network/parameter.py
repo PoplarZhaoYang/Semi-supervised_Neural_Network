@@ -7,7 +7,6 @@ my_parameter = {
     'data_dir':'../data',
     'seed':42,
     'unsupervised_cost_lambda': [0.1, 0.1, 0.1, 0.1, 0.1, 10., 20000.],
-    #'unsupervised_cost_lambda': [0.5, 0.5, 0.5, 0.5, 0.5, 50., 20000.],
     'cuda':True,
     'decay_epoch':20,
     'encoder_activations':['relu', 'relu', 'relu', 'relu', 'relu', 'softmax'],
