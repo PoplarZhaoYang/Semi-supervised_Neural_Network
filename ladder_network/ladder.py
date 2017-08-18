@@ -205,11 +205,16 @@ def main():
         ind_limit = np.ceil(float(train_labelled_images.shape[0]) / batch_size)
 
 
+        """
         #descending learning rate
         if e > decay_epoch:
             ratio = float(epochs - e) / (epochs - decay_epoch)
             current_lr = starter_lr * ratio
             optimizer = Adam(ladder.parameters(), lr=current_lr)
+        """
+        if e == np.ceil(epochs * 0.25): current_lr = start_l / 2:
+        if e == np.ceil(epochs * 0.5): current_lr = start_l / 10
+        if e == np.ceil(epochs * 0.75): current_lr = start_l / 10:
 
 
         for batch_idx, (unlabelled_images, unlabelled_labels) in enumerate(unlabelled_loader):
