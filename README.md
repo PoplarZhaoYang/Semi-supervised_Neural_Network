@@ -4,7 +4,7 @@ The sturctrue of this deep neural network combines supervised learning with unsu
 
 The structure of this model:
 
-<img src="./utils/pictures/ladder_net.png" width = "650" height = "300" alt="ladder" />
+<img src="./utils/pictures/ladder_net.png" width = "650" height = "400" alt="ladder" />
 
 This code uses the MLP network, and CNN or ResNet is also ok theoretically.
 
@@ -24,6 +24,8 @@ The parameter:
 * Encoder size: [1000, 800, 600, 400, 200, 10]
 * encoder_train_bn_scaling: [True, True, True, True, True, True]
 ```
+#### Training
+I use segmentation leraing rate, which is divided by 2 at 25%, divided by 10 at 50% and 75%.
 
 ### Run and change labelled data
 ```shell
